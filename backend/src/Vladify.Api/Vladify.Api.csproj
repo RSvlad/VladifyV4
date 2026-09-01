@@ -8,6 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Vladify.Application\Vladify.Application.csproj" />
     <ProjectReference Include="..\Vladify.Infrastructure\Vladify.Infrastructure.csproj" />
   </ItemGroup>

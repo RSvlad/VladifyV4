@@ -1,0 +1,9 @@
+/backend/src/Vladify.Api/obj
+/backend/src/Vladify.Application/bin
+/backend/src/Vladify.Application/obj
+/backend/src/Vladify.Domain/bin
+/backend/src/Vladify.Domain/obj
+/backend/src/Vladify.Infrastructure/obj
+/frontend/node_modules
+/backend/src/Vladify.Infrastructure/bin
+/backend/src/Vladify.Api/bin
