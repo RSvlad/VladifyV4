@@ -46,5 +46,12 @@
 - **Decision:** `POST /api/playlists/refresh` always returns HTTP 200. On a Spotify-side silent fail (ADR-006), the response body echoes the caller's own unchanged state with empty `tracks`/`tracksAdded`/`tracksRemoved` — no `refreshSucceeded` or similar flag.
 - **Status:** Confirmed by user during Problem 1 Phase 2. User was explicitly offered the alternative (a `refreshSucceeded: false` debug field) and declined it.
 - **Rationale:** Keeps the silent-fail policy (ADR-006) genuinely silent end-to-end, including at the wire level — no back door for the client to detect and react to it.
-- **Open follow-up (unresolved):** this ADR covers only the Spotify-side-unavailable case. Whether *network/server* errors on Refresh (backend unreachable, 5xx, etc.) should also be silent, or should surface a visible signal (e.g. a toast), was raised during Phase 2 and is **not yet decided** — see open-issues.md item 8. Do not assume either answer.
+- **Follow-up resolved (ADR-008):** whether *network/server* errors on Refresh should also be silent was raised during Phase 2 — see ADR-008 below for the resolution.
+- **Date:** 2026-09-01
+
+## ADR-008 — Refresh network/server errors surface a visible signal
+- **Decision:** A network or server failure on Refresh (backend unreachable, 5xx, timeout) is treated differently from the Spotify-side-unavailable case (ADR-006/007): it surfaces a visible signal to the user (via the hook's existing `error` state, intended for a toast/inline message in the UI), rather than failing silently. The local Playlist is left untouched either way — only the visibility of the failure differs.
+- **Status:** Confirmed by user during Problem 1 Phase 2, resolving open-issues.md item 8.
+- **Rationale:** "Playlist unavailable on Spotify" and "our own infrastructure is unreachable" are different failure modes from the user's perspective — the former is expected/benign (playlist went private), the latter is actionable (retry later, check connection) and worth surfacing.
+- **Implementation:** `usePlaylistImport.ts`'s `doRefresh` catch block now calls `setError(...)` with a user-facing message before returning the caller's existing playlist unchanged.
 - **Date:** 2026-09-01

@@ -4,7 +4,7 @@
 Self-hosted web app, spiritual successor to the old Vladify-archive MAUI project (Spotify → YouTube downloader). Stack: TypeScript/React frontend + C# (.NET) backend. Spotify API for playlists, youtube-dl/yt-dlp for downloading. Adds: personal music library sync with offline mode.
 
 ## Status
-**Problem 1 (Spotify playlist import) — Phase 2 in progress.** Backend (Domain/Application/Infrastructure/API layers) and a minimal frontend skeleton (Vite/React/TS, IndexedDB Library, API client, import/refresh hook) are written. Paused mid-Phase-2 on one open UCD question: whether network/server errors on Refresh should stay silent (like the Spotify-side-unavailable case) or surface a visible signal. Not yet resolved — do not assume an answer; ask the user when resuming.
+**Problem 1 (Spotify playlist import) — Phase 2 in progress.** Backend (Domain/Application/Infrastructure/API layers) and a minimal frontend skeleton (Vite/React/TS, IndexedDB Library, API client, import/refresh hook) are written. The one open UCD question (network/server errors on Refresh: silent vs. visible signal) is **resolved — visible signal** (ADR-008). Remaining for Phase 2: no root frontend entry point or UI component exists yet (input to trigger import, playlist view, error/toast surface).
 
 ## Predecessor project note
 The old "Vladify-archive" MAUI project was referenced as prior art but was **not found** in D:\Documents\Projects during setup (checked Archive/ and searched *ladify*). If it exists elsewhere, point Claude to its path so it can be inspected for reusable domain logic, naming, or lessons learned before Phase 1 begins on any problem.
@@ -20,7 +20,7 @@ Done so far:
 - Both responses now carry full `Tracks` (TrackDto[]) alongside the Playlist, so the client can persist Track data into its Library (user correction during Phase 2 — DTOs originally only carried trackIds).
 - Frontend skeleton: `frontend/` (Vite + React + TS + idb). `playlists/types.ts` (mirrors Domain naming), `playlists/api.ts` (fetch wrapper), `library/db.ts` (IndexedDB Library — playlists + tracks object stores, keyed by spotifyId), `playlists/usePlaylistImport.ts` (hook wiring API -> Library).
 
-**Next step:** resolve the open question above (network-error handling on Refresh), then continue/finish Phase 2 wiring (e.g. a minimal UI component to actually trigger import — none written yet), then Phase 3 (test scenarios).
+**Next step:** build the minimal UI (root entry point + component(s) using `usePlaylistImport`, including a visible surface for the hook's `error` state per ADR-008), then Phase 3 (test scenarios).
 
 ## Known constraints / decisions so far
 - Two stacks combined for the first time as a full web app: C# backend, TS/React frontend.

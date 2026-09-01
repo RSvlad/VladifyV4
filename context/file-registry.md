@@ -43,7 +43,7 @@ Review status per file touched. All written 2026-09-01 during Problem 1 (Spotify
 - `frontend/src/playlists/types.ts` — new
 - `frontend/src/playlists/api.ts` — new (revised once: `ImportPlaylistResponse`/`RefreshPlaylistResponse` now carry `tracks`)
 - `frontend/src/library/db.ts` — new
-- `frontend/src/playlists/usePlaylistImport.ts` — new. **Contains the unresolved behavior**: `doRefresh`'s catch block currently treats network/server errors the same as the silent-fail case (returns the caller's existing playlist, no visible error) — this is provisional pending open-issues.md item 8.
+- `frontend/src/playlists/usePlaylistImport.ts` — new, revised once: `doRefresh`'s catch block now calls `setError(...)` on network/server failure (visible signal, per ADR-008), distinct from the silent Spotify-side-unavailable case. Local playlist still returned unchanged.
 
 ## Not yet written
 - No `main.tsx`/`App.tsx`/root frontend entry point or any actual UI component (input field, import button, playlist view) — only the data/hook layer exists so far.

@@ -43,9 +43,11 @@ export function usePlaylistImport() {
       await savePlaylist(result.playlist);
       return result.playlist;
     } catch {
-      // Network/server errors (not the silent-fail case, which never throws) —
-      // keep the existing local playlist untouched and surface nothing intrusive,
-      // consistent with the "no visible error on refresh" UCD decision.
+      // Network/server errors (not the silent-fail case, which never throws, per
+      // ADR-006/007) get a visible signal — decided during Phase 2 (open-issues.md #8).
+      // This is a different failure mode than "Spotify-side playlist unavailable",
+      // which stays fully silent. Local data is kept untouched either way.
+      setError("Couldn't reach the server to refresh this playlist. Please try again.");
       return playlist;
     } finally {
       setIsLoading(false);
