@@ -15,7 +15,19 @@ Ubiquitous language for the domain. Confirmed terms are agreed via Phase 1 discu
 ## Candidate terms (still unconfirmed — deferred to later problems)
 
 - **Sync** — broader reconciliation concept; Refresh (above) covers the Problem 1 scope, but a fuller multi-playlist Sync concept may still be introduced later.
-- **Download job** — the process of resolving a Track to a YouTube source and fetching audio via youtube-dl/yt-dlp. Deferred to a future problem (Track Resolution / Download).
-- **Offline mode** — app usability state where the Library is playable without network access. Not addressed in Problem 1.
+- **Offline mode** — app usability state where the Library is playable without network access. Not addressed yet.
 
 These remain placeholders until their own Phase 1 discussion.
+
+## Confirmed terms (Problem 2: Track Resolution)
+
+- **Track Resolution** — the bounded context and the act of matching a Track (already in the Library, from Spotify) to a YouTube video. Produces a YouTube match (video id, title, channel, confidence score) attached to the existing Track record — does not create a new entity and does not fetch/download audio.
+- **Resolve** — the use case that performs Track Resolution for a single Track: search YouTube (via yt-dlp), score candidates, apply the best if it's confident enough.
+- **Resolve (batch)** — the same, run over a list of Tracks (e.g. a whole Playlist's unresolved Tracks). Never stops early on an individual failure; always returns every Track's outcome as a resolved/failed summary.
+- **Match confidence** — a 0–1 score produced by the matching heuristic (title/artist similarity + duration proximity). Below the confidence threshold, the Track is left unresolved rather than attached to a low-quality guess.
+- **Resolved / Unresolved** — a Track's state with respect to Track Resolution. Resolved means it has a YouTube video match; Unresolved means it doesn't (either never attempted, or attempted and no confident match/no candidates found).
+- **TrackResolved** — Domain Event. Fired when a Track is successfully resolved to a YouTube video.
+
+## Candidate terms (Problem 2, deferred)
+
+- **Download job** — the process of fetching audio for an already-resolved Track via yt-dlp. Deferred to a future problem (Download/Acquisition) — Track Resolution stops at finding the video, not fetching it.

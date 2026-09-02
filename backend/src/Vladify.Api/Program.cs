@@ -1,6 +1,9 @@
 using Vladify.Api.Playlists;
+using Vladify.Api.Tracks;
 using Vladify.Application.Playlists;
+using Vladify.Application.Tracks;
 using Vladify.Infrastructure.Spotify;
+using Vladify.Infrastructure.YouTube;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +13,10 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddSpotifyIntegration(builder.Configuration);
 builder.Services.AddScoped<ImportPlaylistUseCase>();
 builder.Services.AddScoped<RefreshPlaylistUseCase>();
+
+builder.Services.AddYouTubeIntegration(builder.Configuration);
+builder.Services.AddScoped<ResolveTrackUseCase>();
+builder.Services.AddScoped<ResolveTracksBatchUseCase>();
 
 // Self-hosted, single-user app with a separate frontend origin during development.
 builder.Services.AddCors(options =>
@@ -32,5 +39,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors();
 app.MapPlaylistEndpoints();
+app.MapTrackResolutionEndpoints();
 
 app.Run();

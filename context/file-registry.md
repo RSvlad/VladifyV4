@@ -80,3 +80,49 @@ Status: **backend all passing (`dotnet test`). Frontend: all 5 passing after the
 - No `.gitignore` review, Docker/deployment files.
 - No loading state for the initial Library read in `App.tsx` (loads synchronously via useEffect; acceptable for IndexedDB's speed but not explicitly discussed).
 - No API-layer (`Vladify.Api`) or Infrastructure-layer (`SpotifyPlaylistReader`, `SpotifyTokenProvider`) tests — Phase 3 scope was Application + Domain + the frontend hook; endpoint/HTTP-integration and live-Spotify-call tests were not part of the agreed 11 scenarios.
+
+---
+
+## Problem 2: Track Resolution (files touched 2026-09-02)
+
+### Backend — Vladify.Domain
+- `backend/src/Vladify.Domain/Tracks/Track.cs` — revised: added optional resolution fields (`YouTubeVideoId`, `YouTubeTitle`, `YouTubeChannelName`, `MatchConfidence`, `ResolvedAt`, `IsResolved`) and the `ResolveTo(...)` method + doc comment update (no longer says resolution is out of scope).
+- `backend/src/Vladify.Domain/Tracks/YouTubeVideoId.cs` — new.
+- `backend/src/Vladify.Domain/Tracks/TrackResolved.cs` — new (Domain Event).
+
+### Backend — Vladify.Application
+- `backend/src/Vladify.Application/Tracks/IYouTubeTrackSearcher.cs` — new (port + `YouTubeSearchCandidate`).
+- `backend/src/Vladify.Application/Tracks/TrackMatchScorer.cs` — new (pure heuristic function).
+- `backend/src/Vladify.Application/Tracks/ResolveTrackUseCase.cs` — new (`ResolveTrackResult`, `TrackResolutionFailureReason`).
+- `backend/src/Vladify.Application/Tracks/ResolveTracksBatchUseCase.cs` — new (`ResolveTracksBatchResult`).
+
+### Backend — Vladify.Infrastructure
+- `backend/src/Vladify.Infrastructure/YouTube/YouTubeOptions.cs` — new.
+- `backend/src/Vladify.Infrastructure/YouTube/YtDlpTrackSearcher.cs` — new (shells out to `yt-dlp --dump-json --flat-playlist`; never throws, returns `[]` on any failure).
+- `backend/src/Vladify.Infrastructure/YouTube/YouTubeServiceCollectionExtensions.cs` — new.
+
+### Backend — Vladify.Api
+- `backend/src/Vladify.Api/Tracks/TrackResolutionDtos.cs` — new.
+- `backend/src/Vladify.Api/Tracks/TrackResolutionEndpoints.cs` — new (`POST /api/tracks/resolve`, `POST /api/tracks/resolve-batch`).
+- `backend/src/Vladify.Api/Program.cs` — revised: registered YouTube integration + new use cases, mapped the new endpoints.
+- `backend/src/Vladify.Api/appsettings.json` — revised: added `YouTube` section (`YtDlpPath`, `TimeoutSeconds`).
+
+### Frontend
+- `frontend/src/playlists/types.ts` — revised: `Track` interface extended with optional `youTubeVideoId`/`youTubeTitle`/`youTubeChannelName`/`matchConfidence`/`resolvedAt`.
+- `frontend/src/tracks/api.ts` — new (`resolveTrack`, `resolveTracksBatch`).
+- `frontend/src/tracks/useTrackResolution.ts` — new (`doResolve`, `doResolveBatch`, `lastBatchSummary`, `clearError`, `clearBatchSummary`).
+- `frontend/src/components/TrackRow.tsx` — new (per-Track resolved/unresolved display + "Find on YouTube").
+- `frontend/src/components/BatchResolutionSummaryToast.tsx` — new.
+- `frontend/src/components/PlaylistCard.tsx` — revised: now accepts `tracks`, shows/hides a track list, adds a batch-resolve button for unresolved tracks. Props changed (`isLoading` → `isRefreshing`, new resolution-related props) — a breaking change to this component's interface, applied because it's only consumed by `App.tsx` in this codebase.
+- `frontend/src/App.tsx` — revised: loads Tracks per Playlist via `getTracksByIds`, wires `useTrackResolution`, merges error/summary toasts from both hooks.
+- `frontend/src/App.css` — revised: added `.track-list`/`.track-row*`/`.batch-summary-toast`/`.playlist-card__actions` styles; renamed the `.playlist-card button` selector to `.playlist-card__actions button` to match the new markup.
+- `frontend/src/vite-env.d.ts` — new. **Fixes a pre-existing Problem 1 gap**, not part of Problem 2's scope: this file (the standard Vite-generated `/// <reference types="vite/client" />`) was missing, so `import.meta.env` had no type and `npm run build`'s `tsc -b` step failed. Undetected during Problem 1 because Phase 3 verification only ran `npm test` (Vitest doesn't need this reference), not `npm run build`.
+
+## Tests (Phase 3, added 2026-09-02)
+- `backend/tests/Vladify.Domain.Tests/Tracks/TrackResolutionTests.cs` — new (4 tests: `ResolveTo` field-setting, event, overwrite-on-retry, confidence-range validation, unresolved-by-default).
+- `backend/tests/Vladify.Application.Tests/Tracks/TrackMatchScorerTests.cs` — new (6 tests: exact match scores high, unrelated title scores low, unknown duration is neutral not zero, best-of-multiple selection, empty list returns null, far-duration falloff to zero).
+- `backend/tests/Vladify.Application.Tests/Tracks/ResolveTrackUseCaseTests.cs` — new (3 tests: confident match resolves, low-confidence leaves unresolved, no candidates found).
+- `backend/tests/Vladify.Application.Tests/Tracks/ResolveTracksBatchUseCaseTests.cs` — new (2 tests: mixed results don't stop early, all-fail returns full failed list).
+- `frontend/src/tracks/useTrackResolution.test.tsx` — new (5 tests: resolve success persists to Library, no-confident-match sets informational error and writes nothing, network failure sets generic error, batch summary accuracy + selective persistence, clearError/clearBatchSummary are independent). One iteration during Phase 3: the first draft of the "independent reset" test asserted state in the wrong order — `doResolveBatch`'s `setError(null)` on entry cleared the earlier `doResolve` error before the assertion ran. Fixed by reordering the calls/assertions to check each hook action's effect before the next one overwrites shared-but-unrelated state.
+
+Status: **backend all passing (`dotnet test`, 21 total including Problem 1's 11). Frontend all passing (`npm test`, 10 total including Problem 1's 5).**

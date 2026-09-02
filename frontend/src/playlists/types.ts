@@ -9,6 +9,11 @@ export interface Track {
   artists: string[];
   album: string;
   durationMs: number;
+  youTubeVideoId?: string;
+  youTubeTitle?: string;
+  youTubeChannelName?: string;
+  matchConfidence?: number;
+  resolvedAt?: string;
 }
 
 export interface Playlist {
