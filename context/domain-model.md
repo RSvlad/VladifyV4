@@ -1,6 +1,6 @@
 # Domain Model — Vladify v4
 
-## Problem 1: Spotify playlist import (Phase 1 agreed, awaiting Phase 2)
+## Problem 1: Spotify playlist import (COMPLETE — all 3 phases done)
 
 ### Entities
 - **Playlist** — spotifyId, name, ownerName, trackIds (references to Track), importedAt, lastRefreshedAt.

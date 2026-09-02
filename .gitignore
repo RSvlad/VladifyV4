@@ -7,3 +7,7 @@
 /frontend/node_modules
 /backend/src/Vladify.Infrastructure/bin
 /backend/src/Vladify.Api/bin
+/backend/tests/Vladify.Application.Tests/bin
+/backend/tests/Vladify.Application.Tests/obj
+/backend/tests/Vladify.Domain.Tests/bin
+/backend/tests/Vladify.Domain.Tests/obj

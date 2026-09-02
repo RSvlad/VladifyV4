@@ -54,7 +54,9 @@ export function usePlaylistImport() {
     }
   }, []);
 
-  return { doImport, doRefresh, isLoading, error };
+  const clearError = useCallback(() => setError(null), []);
+
+  return { doImport, doRefresh, isLoading, error, clearError };
 }
 
 export { getTracksByIds };

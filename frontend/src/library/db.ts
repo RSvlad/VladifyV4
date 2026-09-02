@@ -35,6 +35,16 @@ function getDb(): Promise<IDBPDatabase<VladifyDb>> {
   return dbPromise;
 }
 
+/**
+ * Test-only escape hatch: drops the cached DB handle so the next getDb() call
+ * reopens against whatever `indexedDB` global is current. Needed because this
+ * module caches its handle at module scope, which would otherwise leak state
+ * across tests sharing one fake-indexeddb instance. Not used by app code.
+ */
+export function __resetDbForTests(): void {
+  dbPromise = null;
+}
+
 export async function savePlaylist(playlist: Playlist): Promise<void> {
   const db = await getDb();
   await db.put('playlists', playlist);
